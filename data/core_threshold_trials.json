@@ -1,0 +1,11 @@
+[
+  { "BuyThreshold": 5, "ExitThreshold": 2, "GlobalCVScore": -0.566392, "MedianSharpe": -0.264615, "SharpeStd": 1.204165, "MedianReturnPct": -0.656633, "MedianMaxDDPct": -19.220194, "NStocks": 77, "Status": "LOCKED (BEST)" },
+  { "BuyThreshold": 5, "ExitThreshold": 3, "GlobalCVScore": -0.771442, "MedianSharpe": -0.469860, "SharpeStd": 1.198145, "MedianReturnPct": -1.578069, "MedianMaxDDPct": -18.020932, "NStocks": 77, "Status": "Candidate" },
+  { "BuyThreshold": 7, "ExitThreshold": 2, "GlobalCVScore": -0.854899, "MedianSharpe": -0.539592, "SharpeStd": 1.264430, "MedianReturnPct": -1.075120, "MedianMaxDDPct": -19.015196, "NStocks": 77, "Status": "Candidate" },
+  { "BuyThreshold": 5, "ExitThreshold": 4, "GlobalCVScore": -0.871108, "MedianSharpe": -0.557366, "SharpeStd": 1.275603, "MedianReturnPct": -1.603792, "MedianMaxDDPct": -16.867401, "NStocks": 77, "Status": "Candidate" },
+  { "BuyThreshold": 6, "ExitThreshold": 2, "GlobalCVScore": -0.873844, "MedianSharpe": -0.556418, "SharpeStd": 1.261671, "MedianReturnPct": -1.582657, "MedianMaxDDPct": -19.059605, "NStocks": 77, "Status": "Candidate" },
+  { "BuyThreshold": 7, "ExitThreshold": 3, "GlobalCVScore": -1.020015, "MedianSharpe": -0.698725, "SharpeStd": 1.305042, "MedianReturnPct": -1.606425, "MedianMaxDDPct": -17.416505, "NStocks": 77, "Status": "Candidate" },
+  { "BuyThreshold": 6, "ExitThreshold": 3, "GlobalCVScore": -1.162798, "MedianSharpe": -0.844191, "SharpeStd": 1.284915, "MedianReturnPct": -1.632291, "MedianMaxDDPct": -17.820799, "NStocks": 77, "Status": "Candidate" },
+  { "BuyThreshold": 6, "ExitThreshold": 4, "GlobalCVScore": -1.303317, "MedianSharpe": -0.975824, "SharpeStd": 1.337464, "MedianReturnPct": -1.879543, "MedianMaxDDPct": -16.867401, "NStocks": 77, "Status": "Candidate" },
+  { "BuyThreshold": 7, "ExitThreshold": 4, "GlobalCVScore": -1.339029, "MedianSharpe": -1.008164, "SharpeStd": 1.358114, "MedianReturnPct": -1.763208, "MedianMaxDDPct": -16.808637, "NStocks": 77, "Status": "Candidate" }
+]

@@ -1,0 +1,4 @@
+Set,Start,End,Sessions,ProportionPct,Purpose
+Core Train,2021-01-04,2024-01-02,747,60.05,Chọn ngưỡng TA chung qua Cross-Validation 3 folds
+Validation,2024-01-03,2024-12-31,249,20.02,Nested Walk-Forward tái chọn Top 5 theo quý & khóa Champion
+Final Test,2025-01-02,2025-12-31,248,19.93,Đánh giá Out-Of-Sample trung thực (No Retuning)

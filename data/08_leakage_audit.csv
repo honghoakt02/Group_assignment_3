@@ -1,0 +1,8 @@
+Stage,MaxInformationDate,UsesFinalTestForTuning,Rule
+TA BUY/EXIT,2024-01-02 00:00:00,False,Chỉ dùng Core Train; khóa cố định BUY=5, EXIT=2
+Model family,2024-12-31 00:00:00,False,Chọn trên Validation bằng nested selection; khóa Champion DYN_EW_REGIME
+Quarterly Top N in Test,t - 1,False,Mỗi kỳ chọn lại bằng dữ liệu <= phiên trước (Causal walk-forward)
+Monthly portfolio weights in Test,t - 1,False,MPT/MinVar/HRP chỉ dùng prices <= phiên trước (No lookahead)
+FA snapshot,t - 1,False,Chỉ FA có effective_date <= as-of; Không có FA an toàn -> tự chuyển TA-only
+Market regime,t - 1 close,False,Tín hiệu từ Close(t-1) -> áp dụng Open(t) (Không dùng Close(t) cho lệnh Open(t))
+Final Test metrics,2025-12-31 00:00:00,True,Chỉ đánh giá OOS; tuyệt đối không retune tham số sau khi xem kết quả

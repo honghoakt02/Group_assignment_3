@@ -1,0 +1,26 @@
+{
+  "name": "hose-v4-dashboard",
+  "version": "4.0.0",
+  "description": "Interactive Quantitative Research Dashboard for HOSE V4 Nested Walk-Forward Portfolio Optimization",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
+    "serve": "npx serve frontend -p 3000",
+    "backend": "uvicorn backend.main:app --reload --port 8000",
+    "streamlit": "streamlit run app.py",
+    "validate": "python scripts/validate_data.py",
+    "extract": "python scripts/extract_data.py"
+  },
+  "keywords": [
+    "quantitative-finance",
+    "portfolio-optimization",
+    "nested-walk-forward",
+    "vietnam-stock-market",
+    "hose",
+    "mpt",
+    "hrp"
+  ],
+  "author": "Quantitative Finance Researcher",
+  "license": "MIT"
+}

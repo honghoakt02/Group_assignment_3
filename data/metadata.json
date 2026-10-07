@@ -1,0 +1,67 @@
+{
+  "DatasetName": "HOSE - 01.01.2021 - 31.12.2025",
+  "StockCount": 95,
+  "TotalSessions": 1244,
+  "TotalRows": 116889,
+  "DateRange": {
+    "Start": "2021-01-04",
+    "End": "2025-12-31"
+  },
+  "Benchmark": "Market Proxy (Equal-Weight Synthetic)",
+  "InitialCash": 1000000000.0,
+  "Commission": 0.0015,
+  "Slippage": 0.0005,
+  "TradingDaysPerYear": 252,
+  "TopN": 5,
+  "StockSelectionFrequency": "Q",
+  "AllocationRebalanceFrequency": "M",
+  "LockedBuyThreshold": 5,
+  "LockedExitThreshold": 2,
+  "RankingWeights": {
+    "TrailingSharpe": 0.25,
+    "TA_Score": 0.20,
+    "RelativeStrength126": 0.25,
+    "LowVolatility63": 0.10,
+    "LiquidityPercentile": 0.05,
+    "MomentumBlend": 0.15
+  },
+  "MarketRegime": {
+    "Enabled": true,
+    "SpanEMA": 200,
+    "SlopeLookback": 20,
+    "ConfirmationRequired": true
+  },
+  "MPTParameters": {
+    "MaxWeight": 0.50,
+    "L2Gamma": 0.03,
+    "MuShrinkage": 0.50,
+    "BlendWeight": 0.50,
+    "CovarianceShrinkage": "Ledoit-Wolf"
+  },
+  "TimeSplits": [
+    {
+      "Set": "Core Train",
+      "Start": "2021-01-04",
+      "End": "2024-01-02",
+      "Sessions": 747,
+      "ProportionPct": 60.05,
+      "Purpose": "Chọn ngưỡng TA chung qua Cross-Validation 3 folds"
+    },
+    {
+      "Set": "Validation",
+      "Start": "2024-01-03",
+      "End": "2024-12-31",
+      "Sessions": 249,
+      "ProportionPct": 20.02,
+      "Purpose": "Nested Walk-Forward tái chọn Top 5 theo quý & khóa Champion"
+    },
+    {
+      "Set": "Final Test",
+      "Start": "2025-01-02",
+      "End": "2025-12-31",
+      "Sessions": 248,
+      "ProportionPct": 19.93,
+      "Purpose": "Đánh giá Out-Of-Sample trung thực (No Retuning)"
+    }
+  ]
+}

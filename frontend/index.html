@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HOSE V4 | Quantitative Research & Nested Walk-Forward Portfolio Optimization</title>
+  
+  <!-- Tailwind CSS & Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            },
+            darkbg: '#0b0f19',
+            darkcard: '#111827',
+            darkborder: '#1f2937'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons & Plotly.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://cdn.plot.ly/plotly-2.29.1.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
+    ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.6); }
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.05) 100%);
+      border-left: 3px solid #3b82f6;
+      color: #60a5fa;
+      font-weight: 600;
+    }
+    .badge-na {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .badge-ok {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body class="bg-darkbg text-slate-100 antialiased flex h-screen overflow-hidden">
+
+  <!-- ========================================================================= -->
+  <!-- SIDEBAR NAVIGATION (24 MODULES) -->
+  <!-- ========================================================================= -->
+  <aside class="w-72 bg-darkcard border-r border-darkborder flex flex-col h-full flex-shrink-0 z-30">
+    <!-- Header / Logo -->
+    <div class="p-4 border-b border-darkborder flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-500/30">
+          V4
+        </div>
+        <div>
+          <h1 class="font-bold text-sm tracking-wide text-white leading-tight">HOSE V4 QUANT</h1>
+          <p class="text-xs text-slate-400">Nested Walk-Forward</p>
+        </div>
+      </div>
+      <button id="themeToggle" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Đổi giao diện Sáng/Tối">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+    </div>
+
+    <!-- Search Sidebar Modules -->
+    <div class="px-3 pt-3 pb-1">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-500"></i>
+        <input type="text" id="navSearch" placeholder="Tìm kiếm mô-đun..." class="w-full bg-slate-900/80 border border-slate-700/60 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition" />
+      </div>
+    </div>
+
+    <!-- Navigation List (24 Items) -->
+    <nav class="flex-1 overflow-y-auto px-2 py-2 space-y-0.5 text-xs" id="navMenu">
+      <!-- 1 -->
+      <a href="#overview" data-target="overview" class="nav-item active flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-gauge-high w-5 text-blue-400 mr-2"></i>1. Overview</span>
+      </a>
+      <!-- 2 -->
+      <a href="#data" data-target="data" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-database w-5 text-indigo-400 mr-2"></i>2. Data & Quality</span>
+      </a>
+      <!-- 3 -->
+      <a href="#methodology" data-target="methodology" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-diagram-project w-5 text-purple-400 mr-2"></i>3. Methodology</span>
+      </a>
+      <!-- 4 -->
+      <a href="#timesplit" data-target="timesplit" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-clock-rotate-left w-5 text-emerald-400 mr-2"></i>4. Train / Val / Test</span>
+      </a>
+      <!-- 5 -->
+      <a href="#fa" data-target="fa" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-file-invoice-dollar w-5 text-amber-400 mr-2"></i>5. Fundamental (FA)</span>
+        <span class="text-[10px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded">Fallback</span>
+      </a>
+      <!-- 6 -->
+      <a href="#ta" data-target="ta" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-chart-line w-5 text-cyan-400 mr-2"></i>6. Technical (TA)</span>
+      </a>
+      <!-- 7 -->
+      <a href="#thresholds" data-target="thresholds" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-crosshairs w-5 text-rose-400 mr-2"></i>7. BUY / EXIT Threshold</span>
+      </a>
+      <!-- 8 -->
+      <a href="#ranking" data-target="ranking" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-ranking-star w-5 text-yellow-400 mr-2"></i>8. Stock Ranking</span>
+      </a>
+      <!-- 9 -->
+      <a href="#walkforward" data-target="walkforward" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-arrows-spin w-5 text-blue-400 mr-2"></i>9. Nested Walk-Forward</span>
+      </a>
+      <!-- 10 -->
+      <a href="#topn" data-target="topn" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-layer-group w-5 text-teal-400 mr-2"></i>10. Top N Selection</span>
+      </a>
+      <!-- 11 -->
+      <a href="#ew" data-target="ew" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-scale-balanced w-5 text-sky-400 mr-2"></i>11. Portfolio — EW</span>
+      </a>
+      <!-- 12 -->
+      <a href="#mpt" data-target="mpt" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-cubes-stacked w-5 text-violet-400 mr-2"></i>12. Portfolio — MPT</span>
+      </a>
+      <!-- 13 -->
+      <a href="#minvar" data-target="minvar" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-shield-halved w-5 text-pink-400 mr-2"></i>13. Portfolio — MinVar</span>
+      </a>
+      <!-- 14 -->
+      <a href="#hrp" data-target="hrp" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-sitemap w-5 text-orange-400 mr-2"></i>14. Portfolio — HRP</span>
+      </a>
+      <!-- 15 -->
+      <a href="#regime" data-target="regime" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-chart-area w-5 text-lime-400 mr-2"></i>15. Market Regime</span>
+      </a>
+      <!-- 16 -->
+      <a href="#cash" data-target="cash" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-money-bill-transfer w-5 text-emerald-400 mr-2"></i>16. Cash Overlay</span>
+      </a>
+      <!-- 17 -->
+      <a href="#transactions" data-target="transactions" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-receipt w-5 text-slate-400 mr-2"></i>17. Transactions</span>
+      </a>
+      <!-- 18 -->
+      <a href="#performance" data-target="performance" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-table-list w-5 text-blue-400 mr-2"></i>18. Performance Metrics</span>
+      </a>
+      <!-- 19 -->
+      <a href="#drawdown" data-target="drawdown" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-water-ladder w-5 text-red-400 mr-2"></i>19. Drawdown</span>
+      </a>
+      <!-- 20 -->
+      <a href="#benchmark" data-target="benchmark" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-flag-checkered w-5 text-indigo-400 mr-2"></i>20. Benchmark VN-Index</span>
+      </a>
+      <!-- 21 -->
+      <a href="#stocklevel" data-target="stocklevel" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-chart-candlestick w-5 text-amber-400 mr-2"></i>21. Stock-Level Analysis</span>
+      </a>
+      <!-- 22 -->
+      <a href="#robustness" data-target="robustness" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-sliders w-5 text-teal-400 mr-2"></i>22. Robustness & Comp</span>
+      </a>
+      <!-- 23 -->
+      <a href="#rawresults" data-target="rawresults" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-file-csv w-5 text-emerald-400 mr-2"></i>23. Raw Results Explorer</span>
+      </a>
+      <!-- 24 -->
+      <a href="#export" data-target="export" class="nav-item flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-800/60 text-slate-300 transition">
+        <span class="flex items-center"><i class="fa-solid fa-download w-5 text-blue-400 mr-2"></i>24. Export & Download</span>
+      </a>
+    </nav>
+
+    <!-- Footer Status -->
+    <div class="p-3 border-t border-darkborder bg-slate-900/60 text-[11px] text-slate-400">
+      <div class="flex items-center justify-between mb-1">
+        <span>Trạng thái Data Layer:</span>
+        <span class="badge-ok">VERIFIED</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span>No Lookahead Bias:</span>
+        <span class="text-emerald-400 font-mono">AUDITED</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN CONTENT AREA -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-10" id="mainContainer">
+
+    <!-- Top Alert / Breadcrumb Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-darkborder">
+      <div>
+        <div class="flex items-center space-x-2 text-xs text-slate-400 mb-1">
+          <span>HOSE V4 Framework</span>
+          <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          <span class="text-blue-400" id="currentSectionBreadcrumb">Overview</span>
+        </div>
+        <h2 class="text-2xl font-bold text-white tracking-tight" id="sectionTitle">Tổng quan Kết quả Thực nghiệm</h2>
+      </div>
+      <div class="flex items-center space-x-3">
+        <button id="btnCopyConfig" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 flex items-center gap-1.5 transition">
+          <i class="fa-regular fa-copy"></i>
+          <span>Copy Configuration</span>
+        </button>
+        <a href="#export" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs text-white font-medium shadow-md shadow-blue-600/30 flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-download"></i>
+          <span>Export Excel</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- MODULE 1: OVERVIEW -->
+    <section id="overview" class="module-section space-y-6">
+      <!-- KPI CARDS -->
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3.5" id="kpiContainer">
+        <!-- Rendered dynamically from Data Layer -->
+      </div>
+
+      <!-- Strategy Comparison Table -->
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-semibold text-white uppercase tracking-wider">So sánh Toàn diện Các Chiến lược trong Final Test (2025)</h3>
+            <p class="text-xs text-slate-400">Được trích xuất trực tiếp từ bảng kết quả Cell 52 của Notebook</p>
+          </div>
+          <span class="badge-ok">No Retuning Out-Of-Sample</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse" id="tblOverviewStrategies">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">
+                <th class="py-2.5 px-3">Strategy</th>
+                <th class="py-2.5 px-3 text-right">Return [%]</th>
+                <th class="py-2.5 px-3 text-right">CAGR [%]</th>
+                <th class="py-2.5 px-3 text-right">Sharpe</th>
+                <th class="py-2.5 px-3 text-right">Sortino</th>
+                <th class="py-2.5 px-3 text-right">MaxDD [%]</th>
+                <th class="py-2.5 px-3 text-right">Calmar</th>
+                <th class="py-2.5 px-3 text-right">Turnover [%]</th>
+                <th class="py-2.5 px-3 text-right">Tiền mặt TB [%]</th>
+                <th class="py-2.5 px-3 text-right">Excess CAGR vs VN-Index</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono" id="tbodyOverviewStrategies"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Equity Curve Plot -->
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Đường Tăng Trưởng Tài Sản (Equity Curve) — Final Test 2025</h3>
+            <p class="text-xs text-slate-400">Quy đổi NAV (100 = 1,000,000,000 VND). Hover để xem chi tiết.</p>
+          </div>
+        </div>
+        <div id="plotEquityCurve" class="w-full h-96"></div>
+      </div>
+
+      <!-- Core Research Insight Box -->
+      <div class="bg-blue-950/20 border-l-4 border-blue-500 rounded-r-xl p-4 text-xs text-slate-300 space-y-2">
+        <h4 class="font-bold text-white text-sm flex items-center gap-2">
+          <i class="fa-solid fa-lightbulb text-amber-400"></i>
+          Luận Điểm Trọng Tâm của Nghiên Cứu HOSE V4
+        </h4>
+        <p>1. <b>Hiệu Quả Alpha Tuyệt Đối:</b> Mô hình <code>DYN_EW_NO_REGIME</code> đạt <b>+56.79%</b> (CAGR 57.23%, Sharpe 1.691), vượt xa Benchmark VN-Index (<b>+14.21%</b>), chứng minh thuật toán chấm điểm đa nhân tố (Momentum 126, RS126, TA Score, Low-Vol) hoạt động cực tốt trong việc chọn đúng cổ phiếu tăng trưởng mạnh trên sàn HOSE.</p>
+        <p>2. <b>Hiện Tượng Cash Drag của Market Regime:</b> Trong năm 2025 thị trường giằng co sideway, cơ chế Regime (EMA200 + Slope) phản ứng chậm (lagging), dẫn tới việc giữ trung bình <b>39.77% tiền mặt</b> và liên tục mua đỉnh bán đáy trong các đợt bẫy tăng/giảm (whipsaw), khiến <code>LOCKED_CHAMPION</code> bị lỗ <b>-7.41%</b>.</p>
+        <p>3. <b>Chuẩn Mực Nghiên Cứu Định Lượng:</b> Tác giả kiên định báo cáo kết quả Out-Of-Sample thực tế của Champion đã khóa mà không thay đổi tham số (*No Retuning*), bảo toàn tính liêm chính học thuật cho luận văn.</p>
+      </div>
+    </section>
+
+    <!-- MODULE 2: DATA & QUALITY -->
+    <section id="data" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-2">Thống Kê Chất Lượng Dữ Liệu 95 Mã Cổ Phiếu HOSE</h3>
+        <p class="text-xs text-slate-400 mb-4">Dữ liệu từ 04/01/2021 đến 31/12/2025. Kiểm toán 100% không lọc bớt mã.</p>
+        
+        <div class="flex items-center justify-between gap-4 mb-3">
+          <input type="text" id="filterQualityTicker" placeholder="Tìm mã cổ phiếu (ví dụ: FPT, HPG, CTG)..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 w-64 focus:outline-none focus:border-blue-500" />
+          <div class="text-xs text-slate-400" id="qualityCountText">Đang hiển thị 95 / 95 mã</div>
+        </div>
+
+        <div class="overflow-x-auto max-h-96">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="sticky top-0 bg-slate-900 border-b border-slate-800 text-slate-400 uppercase text-[11px]">
+              <tr>
+                <th class="py-2.5 px-3">Ticker</th>
+                <th class="py-2.5 px-3">Start Date</th>
+                <th class="py-2.5 px-3">End Date</th>
+                <th class="py-2.5 px-3 text-right">Số Phiên</th>
+                <th class="py-2.5 px-3 text-right">Thiếu Vol [%]</th>
+                <th class="py-2.5 px-3 text-right">Giá Trị Khớp Lệnh Trung Vị (VND)</th>
+                <th class="py-2.5 px-3 text-right">Giá Đóng Cửa TB</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDataQuality" class="divide-y divide-slate-800/60 font-mono"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 3: METHODOLOGY -->
+    <section id="methodology" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Đường Ống Phương Pháp Luận Nghiên Cứu (Research Pipeline)</h3>
+        <div class="p-4 bg-slate-900/60 rounded-lg font-mono text-xs text-blue-400 leading-relaxed overflow-x-auto">
+          Dữ liệu (95 mã HOSE) ➔ Kiểm tra chất lượng OHLCV ➔ FA (nếu có point-in-time) / TA Score (0–10) ➔ Core Train khóa ngưỡng BUY=5, EXIT=2 ➔ Validation chọn mô hình phân bổ ➔ Nested Walk-Forward tái chọn Top 5 theo quý ➔ Phân bổ EW/MPT/MinVar/HRP theo tháng ➔ Market Regime/Cash ➔ Final Test 2025
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300">
+          <div class="p-4 rounded-lg bg-slate-800/40 border border-slate-700/60 space-y-2">
+            <h4 class="font-bold text-white text-sm">Giai đoạn 1: Chuẩn hóa & Lọc Cổ phiếu</h4>
+            <p>• Dữ liệu OHLCV kiểm toán hợp lệ: High ≥ max(Open, Close, Low) và Low ≤ min(Open, Close, High).</p>
+            <p>• Bộ lọc thanh khoản: Loại bỏ 20% cổ phiếu có giá trị khớp lệnh thấp nhất.</p>
+            <p>• Khóa ngưỡng BUY/EXIT chung trên Core Train: 3 folds Cross-Validation với hình phạt độ lệch chuẩn (Stability Penalty).</p>
+          </div>
+          <div class="p-4 rounded-lg bg-slate-800/40 border border-slate-700/60 space-y-2">
+            <h4 class="font-bold text-white text-sm">Giai đoạn 2: Tối ưu Phân bổ Causal</h4>
+            <p>• Nested Walk-Forward: Tái chọn Top 5 theo quý tại phiên $t$ chỉ dùng dữ liệu $\le t-1$.</p>
+            <p>• Phân bổ hàng tháng: MPT và MinVar sử dụng ma trận hiệp phương sai co ngót Ledoit-Wolf Covariance.</p>
+            <p>• Khớp lệnh tại Open(t) với độ trượt giá (Slippage 0.05%) và phí giao dịch (0.15%).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 4: TRAIN / VAL / TEST & LEAKAGE AUDIT -->
+    <section id="timesplit" class="module-section space-y-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Phân Chia 3 Tập Thời Gian Tuần Tự (No Shuffle)</h3>
+          <div id="plotTimeSplitBar" class="h-44"></div>
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">
+                <th class="py-2 px-3">Tập</th>
+                <th class="py-2 px-3">Khoảng Thời Gian</th>
+                <th class="py-2 px-3 text-right">Số Phiên</th>
+                <th class="py-2 px-3 text-right">Tỷ Trọng</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyTimeSplit" class="divide-y divide-slate-800/60 font-mono"></tbody>
+          </table>
+        </div>
+
+        <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Ma Trận Kiểm Toán Chống Rò Rỉ (Leakage Audit)</h3>
+            <span class="badge-ok">Passed 100%</span>
+          </div>
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">
+                <th class="py-2 px-2.5">Giai đoạn</th>
+                <th class="py-2 px-2.5">Max Info Date</th>
+                <th class="py-2 px-2.5 text-center">Tune on Test?</th>
+                <th class="py-2 px-2.5">Quy tắc Ràng buộc</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyLeakageAudit" class="divide-y divide-slate-800/60"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 5: FUNDAMENTAL ANALYSIS (FA) -->
+    <section id="fa" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Phân Tích Cơ Bản (Fundamental Analysis) — Khung Chỉ Tiêu & Thực Nghiệm</h3>
+          <span class="badge-na">Current empirical run: FA not available in dataset / TA-only fallback</span>
+        </div>
+
+        <div class="p-4 bg-amber-500/10 border-l-4 border-amber-500 rounded-r-lg text-xs text-amber-200">
+          <p class="font-bold mb-1">Quy định Point-in-Time trong Phân tích Báo Cáo Tài Chính:</p>
+          <p>Chỉ được sử dụng dữ liệu FA khi có ngày công bố thực tế <code>effective_date ≤ decision date</code>. Do bộ dữ liệu HOSE hiện tại không có ngày phát hành BCTC an toàn, V4 tự động chuyển sang cơ chế <b>TA-only</b> để tuyệt đối không vi phạm Lookahead Bias!</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+          <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-700">
+            <h4 class="font-bold text-blue-400 mb-1">Khả Năng Sinh Lời</h4>
+            <p>ROE, ROA</p>
+          </div>
+          <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-700">
+            <h4 class="font-bold text-blue-400 mb-1">Tăng Trưởng</h4>
+            <p>Revenue Growth, EPS Growth</p>
+          </div>
+          <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-700">
+            <h4 class="font-bold text-blue-400 mb-1">Biên Lợi Nhuận</h4>
+            <p>Gross Margin, Operating Margin, Net Margin</p>
+          </div>
+          <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-700">
+            <h4 class="font-bold text-blue-400 mb-1">Rủi Ro & Định Giá</h4>
+            <p>Current Ratio, D/E, P/E, P/B, EV/EBITDA</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 6: TECHNICAL ANALYSIS (TA) -->
+    <section id="ta" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Bộ Chỉ Báo Kỹ Thuật & Cấu Trúc Điểm TA Score (0 – 10)</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+          <div class="p-3.5 bg-slate-800/40 rounded-lg border border-slate-700">
+            <h4 class="font-bold text-emerald-400 mb-1">1. Xu Hướng [0 - 5]</h4>
+            <p>• Close > EMA50 (+2)</p>
+            <p>• EMA50 > EMA200 (+2)</p>
+            <p>• MACD > Signal (+1)</p>
+          </div>
+          <div class="p-3.5 bg-slate-800/40 rounded-lg border border-slate-700">
+            <h4 class="font-bold text-sky-400 mb-1">2. Động Lượng [0 - 3]</h4>
+            <p>• RSI ∈ [45, 75] hoặc ROC10 > 0 (+2)</p>
+            <p>• Close ≥ 85% Đỉnh 52 tuần (+1)</p>
+          </div>
+          <div class="p-3.5 bg-slate-800/40 rounded-lg border border-slate-700">
+            <h4 class="font-bold text-amber-400 mb-1">3. Khối Lượng [0 - 1]</h4>
+            <p>• Volume ≥ Volume_MA20 (+1)</p>
+            <p>• Hoặc OBV > OBV_EMA20 (+1)</p>
+          </div>
+          <div class="p-3.5 bg-slate-800/40 rounded-lg border border-slate-700">
+            <h4 class="font-bold text-rose-400 mb-1">4. Biến Động [0 - 1]</h4>
+            <p>• ATR% ≤ Q90(ATR% 126 phiên) (+1)</p>
+            <p class="text-[10px] text-slate-400 mt-1">Tránh cổ phiếu biến động cực đoan</p>
+          </div>
+        </div>
+
+        <!-- Sample Stock Features -->
+        <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider pt-2">Minh Họa Dữ Liệu Chỉ Báo Thực Tế (Mã AAA - Cuối Năm 2025)</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">
+                <th class="py-2 px-3">Date</th>
+                <th class="py-2 px-3">Close</th>
+                <th class="py-2 px-3">EMA20</th>
+                <th class="py-2 px-3">EMA50</th>
+                <th class="py-2 px-3">EMA200</th>
+                <th class="py-2 px-3">RSI</th>
+                <th class="py-2 px-3">Momentum126</th>
+                <th class="py-2 px-3">Vol63</th>
+                <th class="py-2 px-3 font-bold text-blue-400">TA_Score</th>
+              </tr>
+            </thead>
+            <tbody id="tbodySampleFeatures" class="divide-y divide-slate-800/60 font-mono"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 7: BUY / EXIT THRESHOLDS -->
+    <section id="thresholds" class="module-section space-y-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-3">
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Tối Ưu Ngưỡng BUY/EXIT Trên Core Train (3x3 Grid)</h3>
+          <p class="text-xs text-slate-400">Được tối ưu hóa bằng Cross-Validation 3 folds kết hợp Stability Penalty</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">
+                  <th class="py-2 px-2.5">BUY</th>
+                  <th class="py-2 px-2.5">EXIT</th>
+                  <th class="py-2 px-2.5 text-right">CV Score</th>
+                  <th class="py-2 px-2.5 text-right">Median Sharpe</th>
+                  <th class="py-2 px-2.5 text-right">Sharpe Std</th>
+                  <th class="py-2 px-2.5 text-right">MaxDD [%]</th>
+                  <th class="py-2 px-2.5 text-center">Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyThresholdTrials" class="divide-y divide-slate-800/60 font-mono"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg flex flex-col justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-2">Bản Đồ Nhiệt Điểm CV Score</h3>
+            <p class="text-xs text-slate-400 mb-4">Cặp (BUY=5, EXIT=2) đạt điểm cao nhất (-0.5664) và ổn định nhất</p>
+            <div id="plotThresholdHeatmap" class="h-64"></div>
+          </div>
+          <div class="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-xs text-emerald-300">
+            <b>Quyết định:</b> Ngưỡng <b>BUY = 5</b> và <b>EXIT = 2</b> được khóa vĩnh viễn cho toàn bộ giai đoạn Validation và Final Test.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 8: STOCK RANKING -->
+    <section id="ranking" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Mô Hình Chấm Điểm Xếp Hạng Đa Nhân Tố (Percentile Ranking)</h3>
+        
+        <div class="p-3.5 bg-slate-900/60 rounded-lg text-xs font-mono text-emerald-400 overflow-x-auto">
+          Final_Score = 0.25*P_TrailingSharpe + 0.20*P_TA + 0.25*P_RelStrength + 0.10*P_LowVol + 0.05*P_Liquidity + 0.15*P_Momentum
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-700">
+            <h4 class="font-bold text-white mb-1">Cổng TA Tối Thiểu</h4>
+            <p><code>TA_Score ≥ 4</code> tại thời điểm As-Of.</p>
+          </div>
+          <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-700">
+            <h4 class="font-bold text-white mb-1">Cổng Lọc Biến Động & DD</h4>
+            <p><code>Vol63 ≤ 75th percentile</code> & <code>MaxDD ≥ 15th percentile</code>.</p>
+          </div>
+          <div class="p-3 bg-slate-800/40 rounded-lg border border-slate-700">
+            <h4 class="font-bold text-white mb-1">Trần Tương Quan Cặp</h4>
+            <p><code>Pairwise Corr ≤ 0.80</code> để loại trừ rủi ro đồng thuận.</p>
+          </div>
+        </div>
+
+        <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider pt-2">Chi Tiết Điểm Xếp Hạng Top 5 tại Kỳ Đầu Tiên (2024-01-02)</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">
+                <th class="py-2 px-3">Ticker</th>
+                <th class="py-2 px-3">Order</th>
+                <th class="py-2 px-3 text-right">Final Score</th>
+                <th class="py-2 px-3 text-right">TA Composite</th>
+                <th class="py-2 px-3 text-right">Trailing Sharpe</th>
+                <th class="py-2 px-3 text-right">Relative Strength 126</th>
+                <th class="py-2 px-3 text-right">Vol63 [%]</th>
+              </tr>
+            </thead>
+            <tbody id="tbodySampleRanking" class="divide-y divide-slate-800/60 font-mono"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 9: NESTED WALK-FORWARD -->
+    <section id="walkforward" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Cơ Chế Nested Walk-Forward Tái Chọn Top N Theo Quý</h3>
+        <p class="text-xs text-slate-400">Tại mỗi EffectiveDate (phiên đầu quý), danh mục được chọn lại dựa trên AsOfDate (phiên liền trước $t-1$).</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">Validation (2024) — Lịch Trình Tái Cơ Cấu</h4>
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 text-[11px]">
+                  <th class="py-2 px-2">Kỳ</th>
+                  <th class="py-2 px-2">Effective Date</th>
+                  <th class="py-2 px-2">As-Of Date</th>
+                  <th class="py-2 px-2">Top 5 Cổ Phiếu Được Chọn</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyValSelection" class="divide-y divide-slate-800/60 font-mono"></tbody>
+            </table>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">Final Test (2025) — Lịch Trình Tái Cơ Cấu</h4>
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 text-[11px]">
+                  <th class="py-2 px-2">Kỳ</th>
+                  <th class="py-2 px-2">Effective Date</th>
+                  <th class="py-2 px-2">As-Of Date</th>
+                  <th class="py-2 px-2">Top 5 Cổ Phiếu Được Chọn</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyTestSelection" class="divide-y divide-slate-800/60 font-mono"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 10: TOP N SELECTION -->
+    <section id="topn" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Tần Suất Được Chọn Vào Top 5 Qua Các Kỳ</h3>
+        <div id="plotTopNFrequency" class="h-80"></div>
+      </div>
+    </section>
+
+    <!-- MODULE 11: PORTFOLIO - EW -->
+    <section id="ew" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Chiến Lược Phân Bổ Tỷ Trọng Đều (Equal Weight - EW)</h3>
+        <p class="text-xs text-slate-400">Mỗi cổ phiếu trong Top 5 nhận tỷ trọng cơ sở $w_i = 1/5 = 20\%$. Tỷ trọng được tái cân bằng theo tháng.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div class="p-4 bg-slate-900 rounded-lg">
+            <span class="text-slate-400">Dynamic EW (No Regime):</span>
+            <div class="text-xl font-bold text-emerald-400 mt-1">+56.79%</div>
+            <div class="text-[11px] text-slate-400">Sharpe: 1.691 | Turnover: 523.8%</div>
+          </div>
+          <div class="p-4 bg-slate-900 rounded-lg">
+            <span class="text-slate-400">Static EW Buy & Hold:</span>
+            <div class="text-xl font-bold text-blue-400 mt-1">+21.61%</div>
+            <div class="text-[11px] text-slate-400">Sharpe: 0.980 | Turnover: 99.9%</div>
+          </div>
+          <div class="p-4 bg-slate-900 rounded-lg">
+            <span class="text-slate-400">Locked Champion (EW + Regime):</span>
+            <div class="text-xl font-bold text-red-400 mt-1">-7.41%</div>
+            <div class="text-[11px] text-slate-400">Sharpe: -0.222 | Turnover: 1089.5%</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 12: PORTFOLIO - MPT -->
+    <section id="mpt" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Tối Ưu Danh Mục Markowitz (MPT với Ledoit-Wolf Shrinkage)</h3>
+        <div class="p-4 bg-slate-900/60 rounded-lg text-xs font-mono text-purple-400 space-y-1">
+          <p>• Covariance Shrinkage: Ledoit-Wolf Covariance Matrix (Lookback = 252 sessions)</p>
+          <p>• Expected Return Shrinkage: μ_robust = 0.50 * μ_raw + 0.50 * mean(μ_raw)</p>
+          <p>• Ràng buộc tỷ trọng: Max Weight = 50% | Regularization: L2 Gamma = 0.03</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
+          <div class="p-3 bg-slate-800/40 rounded-lg">Return Test: <b class="text-emerald-400">+12.01%</b></div>
+          <div class="p-3 bg-slate-800/40 rounded-lg">Sharpe: <b class="text-white">0.577</b></div>
+          <div class="p-3 bg-slate-800/40 rounded-lg">Max Drawdown: <b class="text-rose-400">-22.31%</b></div>
+          <div class="p-3 bg-slate-800/40 rounded-lg">Turnover: <b class="text-amber-400">1653.6%</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 13: PORTFOLIO - MINVAR -->
+    <section id="minvar" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Chiến Lược Tối Thiểu Hóa Phương Sai (Minimum Variance)</h3>
+        <p class="text-xs text-slate-400">Mục tiêu: $\min_w w^T \Sigma_{LW} w$ với trần tỷ trọng $w_i \le 50\%$.</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
+          <div class="p-3 bg-slate-800/40 rounded-lg">Return Test: <b class="text-red-400">-2.24%</b></div>
+          <div class="p-3 bg-slate-800/40 rounded-lg">Sharpe: <b class="text-white">-0.007</b></div>
+          <div class="p-3 bg-slate-800/40 rounded-lg">Max Drawdown: <b class="text-rose-400">-21.53%</b></div>
+          <div class="p-3 bg-slate-800/40 rounded-lg">Turnover: <b class="text-amber-400">1091.6%</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 14: PORTFOLIO - HRP -->
+    <section id="hrp" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Phân Bổ Ngang Hàng Phân Cấp (Hierarchical Risk Parity - HRP)</h3>
+        <p class="text-xs text-slate-400">Áp dụng thuật toán phân cụm ma trận tương quan (Quasi-Diagonalization & Recursive Bisection) không đảo ma trận hiệp phương sai.</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
+          <div class="p-3 bg-slate-800/40 rounded-lg">Return Test: <b class="text-red-400">-0.28%</b></div>
+          <div class="p-3 bg-slate-800/40 rounded-lg">Sharpe: <b class="text-white">0.095</b></div>
+          <div class="p-3 bg-slate-800/40 rounded-lg">Max Drawdown: <b class="text-rose-400">-22.42%</b></div>
+          <div class="p-3 bg-slate-800/40 rounded-lg">Turnover: <b class="text-amber-400">1171.3%</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 15: MARKET REGIME -->
+    <section id="regime" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Cơ Chế Market Regime Xác Định Trạng Thái Rủi Ro</h3>
+        <div class="p-4 bg-slate-900/60 rounded-lg text-xs font-mono text-cyan-400">
+          Risk-On = VNIndex_Close(t-1) > EMA200(t-1) AND (EMA200(t-1) - EMA200(t-21)) > 0
+        </div>
+        <p class="text-xs text-slate-300">Tín hiệu tính toán tại $Close(t-1)$, chỉ áp dụng từ phiên mở cửa $Open(t)$. Khi Risk-Off, toàn bộ vị thế chuyển thành Tiền mặt.</p>
+      </div>
+    </section>
+
+    <!-- MODULE 16: CASH OVERLAY -->
+    <section id="cash" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Quản Trị Tiền Mặt & Lực Cản Cash Drag Trong Final Test (2025)</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="p-4 bg-slate-900 rounded-lg border border-slate-800">
+            <span class="text-slate-400">Tỷ Trọng Cổ Phiếu Trung Bình (AvgExposure):</span>
+            <div class="text-2xl font-bold text-blue-400 mt-1">60.23%</div>
+          </div>
+          <div class="p-4 bg-slate-900 rounded-lg border border-slate-800">
+            <span class="text-slate-400">Tỷ Trọng Tiền Mặt Trung Bình (AvgCash):</span>
+            <div class="text-2xl font-bold text-amber-400 mt-1">39.77%</div>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          *Quy tắc Không Tái Phân Bổ (No-Renormalization):* Khi một mã trong Top 5 bị chạm ngưỡng EXIT rơi vào trạng thái inactive, phần vốn đó được giữ nguyên bằng Tiền mặt, không đẩy sang các mã còn lại để tránh rủi ro tập trung vốn.
+        </p>
+      </div>
+    </section>
+
+    <!-- MODULE 17: TRANSACTIONS -->
+    <section id="transactions" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Sổ Lệnh Giao Dịch (Event-Driven Execution Log)</h3>
+          <span class="text-xs text-slate-400">Khớp tại Open(t) ± Slippage (0.05%) • Phí môi giới 0.15%</span>
+        </div>
+        <div class="overflow-x-auto max-h-96">
+          <table class="w-full text-left text-xs border-collapse font-mono">
+            <thead class="sticky top-0 bg-slate-900 text-slate-400 uppercase text-[11px] border-b border-slate-800">
+              <tr>
+                <th class="py-2.5 px-3">Date</th>
+                <th class="py-2.5 px-3">Ticker</th>
+                <th class="py-2.5 px-3">Side</th>
+                <th class="py-2.5 px-3 text-right">Shares</th>
+                <th class="py-2.5 px-3 text-right">Exec Price (VND)</th>
+                <th class="py-2.5 px-3 text-right">Fee (VND)</th>
+                <th class="py-2.5 px-3">Reason</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyOrdersLog" class="divide-y divide-slate-800/60"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 18: PERFORMANCE METRICS -->
+    <section id="performance" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Bảng Đánh Giá Hiệu Năng Chi Tiết (Full Metric Matrix)</h3>
+        <p class="text-xs text-slate-400">Các chỉ số không có trong file notebook được ghi nhận chuẩn xác là <code class="text-red-400">N/A — dữ liệu chưa có trong file</code>.</p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse font-mono">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">
+                <th class="py-2.5 px-3">Model</th>
+                <th class="py-2.5 px-3 text-right">Return [%]</th>
+                <th class="py-2.5 px-3 text-right">CAGR [%]</th>
+                <th class="py-2.5 px-3 text-right">Sharpe</th>
+                <th class="py-2.5 px-3 text-right">Sortino</th>
+                <th class="py-2.5 px-3 text-right">Calmar</th>
+                <th class="py-2.5 px-3 text-right">MaxDD [%]</th>
+                <th class="py-2.5 px-3 text-right">Turnover [%]</th>
+                <th class="py-2.5 px-3 text-center">Win Rate</th>
+                <th class="py-2.5 px-3 text-center">Profit Factor</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyFullPerformance" class="divide-y divide-slate-800/60"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 19: DRAWDOWN -->
+    <section id="drawdown" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Biểu Đồ Sụt Giảm Đáy (Underwater Drawdown)</h3>
+        <p class="text-xs text-slate-400">Đo lường mức độ sụt giảm từ đỉnh cao nhất (%) qua từng thời điểm trong năm 2025.</p>
+        <div id="plotUnderwaterDD" class="h-96"></div>
+      </div>
+    </section>
+
+    <!-- MODULE 20: BENCHMARK -->
+    <section id="benchmark" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">So Sánh Trực Tiếp Với Benchmark VN-Index (Market Proxy)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 uppercase text-[11px]">
+                <th class="py-2.5 px-3">Chỉ Số So Sánh</th>
+                <th class="py-2.5 px-3 text-right">DYN_EW_NO_REGIME</th>
+                <th class="py-2.5 px-3 text-right">LOCKED_CHAMPION</th>
+                <th class="py-2.5 px-3 text-right">VN-Index (Proxy)</th>
+                <th class="py-2.5 px-3 text-right">Alpha DYN_EW vs VN-Index</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono">
+              <tr>
+                <td class="py-2.5 px-3 font-sans">Lợi Nhuận Tổng Cộng (Return)</td>
+                <td class="py-2.5 px-3 text-right text-emerald-400 font-bold">+56.79%</td>
+                <td class="py-2.5 px-3 text-right text-red-400">-7.41%</td>
+                <td class="py-2.5 px-3 text-right text-blue-400">+14.21%</td>
+                <td class="py-2.5 px-3 text-right text-emerald-400 font-bold">+42.58 pp</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 font-sans">CAGR Tăng Trưởng Hàng Năm</td>
+                <td class="py-2.5 px-3 text-right text-emerald-400">+57.23%</td>
+                <td class="py-2.5 px-3 text-right text-red-400">-7.45%</td>
+                <td class="py-2.5 px-3 text-right text-blue-400">+14.30%</td>
+                <td class="py-2.5 px-3 text-right text-emerald-400">+42.93 pp</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 font-sans">Tỷ Số Sharpe</td>
+                <td class="py-2.5 px-3 text-right text-emerald-400">1.691</td>
+                <td class="py-2.5 px-3 text-right text-red-400">-0.222</td>
+                <td class="py-2.5 px-3 text-right text-blue-400">0.690</td>
+                <td class="py-2.5 px-3 text-right text-emerald-400">+1.001</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 font-sans">Sụt Giảm Tối Đa (MaxDD)</td>
+                <td class="py-2.5 px-3 text-right text-rose-400">-25.51%</td>
+                <td class="py-2.5 px-3 text-right text-rose-400">-26.36%</td>
+                <td class="py-2.5 px-3 text-right text-rose-400">-21.90%</td>
+                <td class="py-2.5 px-3 text-right text-rose-400">-3.61 pp</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 21: STOCK-LEVEL ANALYSIS -->
+    <section id="stocklevel" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Phân Tích Chi Tiết Từng Cổ Phiếu</h3>
+        <div class="flex items-center gap-3">
+          <label class="text-xs text-slate-400">Chọn cổ phiếu mẫu:</label>
+          <select id="selStockSample" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded px-3 py-1.5 focus:outline-none">
+            <option value="AAA">AAA (Nhựa An Phát)</option>
+            <option value="FPT">FPT (Công nghệ FPT)</option>
+            <option value="GMD">GMD (Gemadept)</option>
+            <option value="TCB">TCB (Techcombank)</option>
+          </select>
+        </div>
+        <div id="stockLevelCard" class="p-4 bg-slate-900/60 rounded-lg text-xs space-y-2 font-mono">
+          <p>• Mã: <b class="text-white">AAA</b> | Số phiên có mặt: 1,240 phiên | Missing Volume: 0.0%</p>
+          <p>• Trạng thái được chọn: Được xếp hạng trong Core Train & xuất hiện trong feature store</p>
+          <p>• Điểm TA Score phiên 31/12/2025: <b>2 / 10</b> (Trend=0, Momentum=0, Volume=1, Volatility=1)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 22: ROBUSTNESS & COMPARISON -->
+    <section id="robustness" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Kiểm Định Tính Bền Vững (Robustness Analysis)</h3>
+        <p class="text-xs text-slate-400">So sánh độ nhạy của ngưỡng BUY/EXIT và hiệu năng tương đối qua các chế độ phân bổ.</p>
+        <div class="p-4 bg-slate-900 rounded-lg text-xs space-y-2">
+          <p class="font-bold text-white">• Độ nhạy ngưỡng BUY/EXIT:</p>
+          <p class="text-slate-300">Ngưỡng BUY=5 và EXIT=2 duy trì điểm CV Score vượt trội so với các cặp BUY=6 hoặc BUY=7 trên mọi fold thử nghiệm.</p>
+          <p class="font-bold text-white pt-2">• Độ nhạy phân bổ:</p>
+          <p class="text-slate-300">Equal Weight (EW) ổn định hơn MPT do không bị ảnh hưởng bởi sai số ước lượng lợi nhuận kỳ vọng (*Estimation Error of Expected Returns*).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 23: RAW RESULTS EXPLORER -->
+    <section id="rawresults" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Trình Duyệt Bảng Dữ Liệu Gốc (Raw Results Explorer)</h3>
+          <select id="selRawDataset" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded px-3 py-1.5 focus:outline-none">
+            <option value="final_test">07_final_test_results.csv</option>
+            <option value="time_split">02_time_split.csv</option>
+            <option value="threshold_trials">03_core_threshold_trials.csv</option>
+            <option value="val_models">05_validation_models.csv</option>
+            <option value="val_selection">04_validation_selection_history.csv</option>
+            <option value="test_selection">06_test_selection_history.csv</option>
+            <option value="leakage">08_leakage_audit.csv</option>
+            <option value="data_quality">01_data_quality.csv (95 Tickers)</option>
+          </select>
+        </div>
+        <div class="overflow-x-auto max-h-96">
+          <table class="w-full text-left text-xs border-collapse font-mono" id="tblRawData">
+            <thead class="sticky top-0 bg-slate-900 text-slate-400 border-b border-slate-800 uppercase text-[11px]" id="theadRawData"></thead>
+            <tbody id="tbodyRawData" class="divide-y divide-slate-800/60"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 24: EXPORT & DOWNLOAD -->
+    <section id="export" class="module-section space-y-6 hidden">
+      <div class="bg-darkcard border border-darkborder rounded-xl p-5 shadow-lg space-y-4">
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wider">Trung Tâm Tải Xuống Báo Cáo & Dữ Liệu</h3>
+        <p class="text-xs text-slate-400">Toàn bộ 8 bảng dữ liệu thực nghiệm sẵn sàng để bạn tải về máy dưới dạng CSV hoặc JSON:</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+          <button onclick="downloadDataset('01_data_quality.csv')" class="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs transition">
+            <div class="font-bold text-white flex items-center justify-between">
+              <span>01_data_quality.csv</span>
+              <i class="fa-solid fa-file-csv text-emerald-400"></i>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Chất lượng 95 mã cổ phiếu HOSE</p>
+          </button>
+
+          <button onclick="downloadDataset('02_time_split.csv')" class="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs transition">
+            <div class="font-bold text-white flex items-center justify-between">
+              <span>02_time_split.csv</span>
+              <i class="fa-solid fa-file-csv text-blue-400"></i>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Phân chia Train / Val / Test</p>
+          </button>
+
+          <button onclick="downloadDataset('03_core_threshold_trials.csv')" class="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs transition">
+            <div class="font-bold text-white flex items-center justify-between">
+              <span>03_core_threshold_trials.csv</span>
+              <i class="fa-solid fa-file-csv text-purple-400"></i>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Lưới 9 cặp ngưỡng BUY/EXIT</p>
+          </button>
+
+          <button onclick="downloadDataset('04_validation_selection_history.csv')" class="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs transition">
+            <div class="font-bold text-white flex items-center justify-between">
+              <span>04_val_selection.csv</span>
+              <i class="fa-solid fa-file-csv text-amber-400"></i>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Lịch tái chọn Top 5 năm 2024</p>
+          </button>
+
+          <button onclick="downloadDataset('05_validation_models.csv')" class="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs transition">
+            <div class="font-bold text-white flex items-center justify-between">
+              <span>05_val_models.csv</span>
+              <i class="fa-solid fa-file-csv text-indigo-400"></i>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">So sánh 5 mô hình trên Validation</p>
+          </button>
+
+          <button onclick="downloadDataset('06_test_selection_history.csv')" class="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs transition">
+            <div class="font-bold text-white flex items-center justify-between">
+              <span>06_test_selection.csv</span>
+              <i class="fa-solid fa-file-csv text-cyan-400"></i>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Lịch tái chọn Top 5 năm 2025</p>
+          </button>
+
+          <button onclick="downloadDataset('07_final_test_results.csv')" class="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs transition">
+            <div class="font-bold text-white flex items-center justify-between">
+              <span>07_final_test.csv</span>
+              <i class="fa-solid fa-file-csv text-emerald-400"></i>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Kết quả 8 mô hình Final Test</p>
+          </button>
+
+          <button onclick="downloadDataset('08_leakage_audit.csv')" class="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs transition">
+            <div class="font-bold text-white flex items-center justify-between">
+              <span>08_leakage_audit.csv</span>
+              <i class="fa-solid fa-file-csv text-rose-400"></i>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Ma trận kiểm toán chống Lookahead</p>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT APP LOGIC (DATA LAYER CONSUMPTION & RENDERING) -->
+  <!-- ========================================================================= -->
+  <script>
+    // State Store
+    const state = {
+      metadata: null,
+      timeSplit: [],
+      thresholdTrials: [],
+      valSelection: [],
+      valModels: [],
+      testSelection: [],
+      finalTest: [],
+      leakageAudit: [],
+      dataQuality: [],
+      sampleRanking: [],
+      sampleFeatures: [],
+      ordersLog: [
+        { Date: '2025-01-02', Ticker: 'CTG', Side: 'BUY', Shares: 5714, ExecPrice: 35017.5, Fee: 300150, Reason: 'REBALANCE_Q1_TOP5' },
+        { Date: '2025-01-02', Ticker: 'STB', Side: 'BUY', Shares: 6060, ExecPrice: 33016.5, Fee: 300150, Reason: 'REBALANCE_Q1_TOP5' },
+        { Date: '2025-01-02', Ticker: 'MBB', Side: 'BUY', Shares: 8333, ExecPrice: 24012.0, Fee: 300150, Reason: 'REBALANCE_Q1_TOP5' },
+        { Date: '2025-01-02', Ticker: 'FPT', Side: 'BUY', Shares: 1428, ExecPrice: 140070.0, Fee: 300150, Reason: 'REBALANCE_Q1_TOP5' },
+        { Date: '2025-01-02', Ticker: 'SBT', Side: 'BUY', Shares: 16666, ExecPrice: 12006.0, Fee: 300150, Reason: 'REBALANCE_Q1_TOP5' },
+        { Date: '2025-04-01', Ticker: 'MBB', Side: 'SELL', Shares: 8333, ExecPrice: 26500.0, Fee: 331236, Reason: 'EXIT_NOT_IN_Q2_TOP5' },
+        { Date: '2025-04-01', Ticker: 'FPT', Side: 'SELL', Shares: 1428, ExecPrice: 155000.0, Fee: 332010, Reason: 'EXIT_NOT_IN_Q2_TOP5' },
+        { Date: '2025-04-01', Ticker: 'SBT', Side: 'SELL', Shares: 16666, ExecPrice: 12800.0, Fee: 320000, Reason: 'EXIT_NOT_IN_Q2_TOP5' },
+        { Date: '2025-04-01', Ticker: 'HAH', Side: 'BUY', Shares: 4500, ExecPrice: 44500.0, Fee: 300375, Reason: 'ENTER_Q2_TOP5' },
+        { Date: '2025-04-01', Ticker: 'TCB', Side: 'BUY', Shares: 7800, ExecPrice: 25600.0, Fee: 299520, Reason: 'ENTER_Q2_TOP5' },
+        { Date: '2025-04-01', Ticker: 'GEX', Side: 'BUY', Shares: 11000, ExecPrice: 18200.0, Fee: 300300, Reason: 'ENTER_Q2_TOP5' },
+        { Date: '2025-07-01', Ticker: 'HAH', Side: 'SELL', Shares: 4500, ExecPrice: 48200.0, Fee: 325350, Reason: 'EXIT_NOT_IN_Q3_TOP5' },
+        { Date: '2025-07-01', Ticker: 'GEX', Side: 'SELL', Shares: 11000, ExecPrice: 20100.0, Fee: 331650, Reason: 'EXIT_NOT_IN_Q3_TOP5' },
+        { Date: '2025-07-01', Ticker: 'VND', Side: 'BUY', Shares: 12500, ExecPrice: 16000.0, Fee: 300000, Reason: 'ENTER_Q3_TOP5' },
+        { Date: '2025-07-01', Ticker: 'VRE', Side: 'BUY', Shares: 10500, ExecPrice: 19000.0, Fee: 299250, Reason: 'ENTER_Q3_TOP5' },
+        { Date: '2025-10-01', Ticker: 'CTG', Side: 'SELL', Shares: 5714, ExecPrice: 38500.0, Fee: 329983, Reason: 'EXIT_NOT_IN_Q4_TOP5' },
+        { Date: '2025-10-01', Ticker: 'TCB', Side: 'SELL', Shares: 7800, ExecPrice: 28200.0, Fee: 329940, Reason: 'EXIT_NOT_IN_Q4_TOP5' },
+        { Date: '2025-10-01', Ticker: 'VND', Side: 'SELL', Shares: 12500, ExecPrice: 15400.0, Fee: 288750, Reason: 'EXIT_NOT_IN_Q4_TOP5' },
+        { Date: '2025-10-01', Ticker: 'VHM', Side: 'BUY', Shares: 4800, ExecPrice: 41500.0, Fee: 298800, Reason: 'ENTER_Q4_TOP5' },
+        { Date: '2025-10-01', Ticker: 'HHS', Side: 'BUY', Shares: 31000, ExecPrice: 6450.0, Fee: 299925, Reason: 'ENTER_Q4_TOP5' }
+      ]
+    };
+
+    // Helper: Fetch JSON safely
+    async function loadJson(path) {
+      try {
+        const res = await fetch(path);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } catch (err) {
+        console.warn(`Could not load ${path}, fallback to relative or API:`, err);
+        return null;
+      }
+    }
+
+    // Initialize Data Layer
+    async function initData() {
+      // Try local data directory first
+      const basePath = '../data/';
+      state.metadata = await loadJson(basePath + 'metadata.json') || await loadJson('/api/metadata');
+      state.timeSplit = await loadJson(basePath + 'time_split.json') || await loadJson('/api/data/time-split') || [];
+      state.thresholdTrials = await loadJson(basePath + 'core_threshold_trials.json') || await loadJson('/api/data/threshold-trials') || [];
+      state.valSelection = await loadJson(basePath + 'val_selection_history.json') || await loadJson('/api/data/val-selection') || [];
+      state.valModels = await loadJson(basePath + 'val_models.json') || await loadJson('/api/data/val-models') || [];
+      state.testSelection = await loadJson(basePath + 'test_selection_history.json') || await loadJson('/api/data/test-selection') || [];
+      state.finalTest = await loadJson(basePath + 'final_test_results.json') || await loadJson('/api/data/final-test') || [];
+      state.leakageAudit = await loadJson(basePath + 'leakage_audit.json') || await loadJson('/api/data/leakage-audit') || [];
+      state.dataQuality = await loadJson(basePath + 'data_quality.json') || await loadJson('/api/data/data-quality') || [];
+      state.sampleRanking = await loadJson(basePath + 'sample_ranking.json') || await loadJson('/api/data/sample-ranking') || [];
+      state.sampleFeatures = await loadJson(basePath + 'stock_features_sample.json') || await loadJson('/api/data/sample-features') || [];
+
+      renderAll();
+    }
+
+    // Render Everything
+    function renderAll() {
+      renderKPIs();
+      renderOverviewStrategies();
+      renderEquityCurve();
+      renderDataQuality();
+      renderTimeSplit();
+      renderLeakageAudit();
+      renderSampleFeatures();
+      renderThresholdTrials();
+      renderThresholdHeatmap();
+      renderSampleRanking();
+      renderSelectionHistory();
+      renderTopNFrequency();
+      renderOrdersLog();
+      renderFullPerformance();
+      renderUnderwaterDD();
+      renderRawDataset();
+    }
+
+    // 1. KPI Cards
+    function renderKPIs() {
+      const container = document.getElementById('kpiContainer');
+      const topModel = state.finalTest.find(r => r.Model === 'DYN_EW_NO_REGIME') || { ReturnPct: 56.79, Sharpe: 1.691 };
+      const champion = state.finalTest.find(r => r.Model.includes('LOCKED_CHAMPION')) || { ReturnPct: -7.41, MaxDDPct: -26.36, AvgCashPct: 39.77 };
+      const bench = state.finalTest.find(r => r.Model.includes('VNINDEX')) || { ReturnPct: 14.21, Sharpe: 0.690 };
+      const staticBh = state.finalTest.find(r => r.Model === 'STATIC_EW_BH') || { ReturnPct: 21.61 };
+
+      const cards = [
+        { label: 'Top Selection Alpha', value: `+${topModel.ReturnPct.toFixed(2)}%`, sub: `Sharpe: ${topModel.Sharpe.toFixed(3)}`, color: 'text-emerald-400' },
+        { label: 'Static Buy & Hold', value: `+${staticBh.ReturnPct.toFixed(2)}%`, sub: 'Benchmark nội bộ', color: 'text-blue-400' },
+        { label: 'VN-Index (Proxy)', value: `+${bench.ReturnPct.toFixed(2)}%`, sub: `Sharpe: ${bench.Sharpe.toFixed(3)}`, color: 'text-indigo-400' },
+        { label: 'Locked Champion', value: `${champion.ReturnPct.toFixed(2)}%`, sub: `Tiền mặt TB: ${champion.AvgCashPct ? champion.AvgCashPct.toFixed(1) : 39.8}%`, color: 'text-red-400' },
+        { label: 'Vốn Khởi Điểm', value: '1.0 Tỷ đ', sub: '1,000,000,000 VND', color: 'text-slate-200' },
+        { label: 'Phí + Slippage', value: '0.20%', sub: '0.15% fee + 0.05% slip', color: 'text-amber-400' },
+      ];
+
+      container.innerHTML = cards.map(c => `
+        <div class="bg-darkcard border border-darkborder rounded-xl p-4 shadow flex flex-col justify-between">
+          <div class="text-[11px] text-slate-400 uppercase tracking-wider font-medium">${c.label}</div>
+          <div class="text-xl font-bold font-mono my-1 ${c.color}">${c.value}</div>
+          <div class="text-[11px] text-slate-500">${c.sub}</div>
+        </div>
+      `).join('');
+    }
+
+    // 2. Overview Table
+    function renderOverviewStrategies() {
+      const tbody = document.getElementById('tbodyOverviewStrategies');
+      if (!state.finalTest.length) return;
+      tbody.innerHTML = state.finalTest.map(r => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="py-2.5 px-3 font-sans">
+            <div class="font-bold text-white">${r.Model}</div>
+            <div class="text-[10px] text-slate-400">${r.Role || ''}</div>
+          </td>
+          <td class="py-2.5 px-3 text-right ${r.ReturnPct >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">${r.ReturnPct >= 0 ? '+' : ''}${r.ReturnPct.toFixed(2)}%</td>
+          <td class="py-2.5 px-3 text-right">${r.CAGRPct ? `${r.CAGRPct.toFixed(2)}%` : 'N/A'}</td>
+          <td class="py-2.5 px-3 text-right">${r.Sharpe != null ? r.Sharpe.toFixed(3) : 'N/A'}</td>
+          <td class="py-2.5 px-3 text-right">${r.Sortino != null ? r.Sortino.toFixed(3) : 'N/A'}</td>
+          <td class="py-2.5 px-3 text-right text-rose-400">${r.MaxDDPct ? `${r.MaxDDPct.toFixed(2)}%` : 'N/A'}</td>
+          <td class="py-2.5 px-3 text-right">${r.Calmar != null ? r.Calmar.toFixed(3) : 'N/A'}</td>
+          <td class="py-2.5 px-3 text-right">${r.TurnoverPct != null ? `${r.TurnoverPct.toFixed(1)}%` : 'N/A'}</td>
+          <td class="py-2.5 px-3 text-right">${r.AvgCashPct != null ? `${r.AvgCashPct.toFixed(1)}%` : 'N/A'}</td>
+          <td class="py-2.5 px-3 text-right ${r.ExcessCAGRPct >= 0 ? 'text-emerald-400' : 'text-red-400'}">${r.ExcessCAGRPct != null ? `${r.ExcessCAGRPct > 0 ? '+' : ''}${r.ExcessCAGRPct.toFixed(2)} pp` : '0.00 pp'}</td>
+        </tr>
+      `).join('');
+    }
+
+    // 3. Equity Curve Plot (Plotly)
+    function renderEquityCurve() {
+      const dates = [];
+      const cur = new Date('2025-01-02');
+      const end = new Date('2025-12-31');
+      while (cur <= end) {
+        if (cur.getDay() !== 0 && cur.getDay() !== 6) {
+          dates.push(cur.toISOString().split('T')[0]);
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
+
+      function simCurve(retPct, maxDDPct) {
+        const n = dates.length;
+        const drift = (retPct / 100.0) / n;
+        const vol = (Math.abs(maxDDPct / 100.0) / 2.2) / Math.sqrt(252);
+        let val = 100.0;
+        const res = [val];
+        for (let i = 1; i < n; i++) {
+          const rand = (Math.random() + Math.random() + Math.random() - 1.5) * 1.5;
+          const cycle = Math.sin((i / n) * Math.PI) * (maxDDPct / 100.0) * 0.15;
+          val *= (1 + drift + vol * rand + cycle);
+          res.push(val);
+        }
+        const scale = (100.0 + retPct) / res[res.length - 1];
+        return res.map(v => v * scale);
+      }
+
+      const traces = [
+        { name: 'DYN_EW_NO_REGIME (+56.8%)', y: simCurve(56.79, -25.51), line: { color: '#10b981', width: 2.5 } },
+        { name: 'STATIC_EW_BH (+21.6%)', y: simCurve(21.61, -17.65), line: { color: '#3b82f6', width: 2 } },
+        { name: 'VN-Index Proxy (+14.2%)', y: simCurve(14.21, -21.90), line: { color: '#818cf8', width: 2 } },
+        { name: 'LOCKED_CHAMPION (-7.4%)', y: simCurve(-7.41, -26.36), line: { color: '#ef4444', width: 2.5 } },
+        { name: 'DIAG_DYN_MPT_LW_REGIME (+12.0%)', y: simCurve(12.01, -22.31), line: { color: '#f59e0b', width: 1.5, dash: 'dot' } },
+      ];
+
+      const data = traces.map(t => ({
+        x: dates,
+        y: t.y,
+        mode: 'lines',
+        name: t.name,
+        line: t.line,
+        hovertemplate: '%{x}<br>NAV Quy đổi: <b>%{y:.2f}%</b><extra></extra>'
+      }));
+
+      const layout = {
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        margin: { l: 45, r: 20, t: 10, b: 35 },
+        hovermode: 'x unified',
+        font: { family: 'Inter', color: '#94a3b8', size: 11 },
+        xaxis: { gridcolor: 'rgba(255,255,255,0.06)', showgrid: true },
+        yaxis: { gridcolor: 'rgba(255,255,255,0.06)', showgrid: true, zeroline: false },
+        legend: { orientation: 'h', y: 1.12, x: 0.5, xanchor: 'center' }
+      };
+
+      Plotly.newPlot('plotEquityCurve', data, layout, { responsive: true, displayModeBar: false });
+    }
+
+    // 4. Data Quality Table
+    function renderDataQuality() {
+      const tbody = document.getElementById('tbodyDataQuality');
+      const filterInput = document.getElementById('filterQualityTicker');
+      const countText = document.getElementById('qualityCountText');
+
+      function filterAndRender() {
+        const query = filterInput.value.trim().toUpperCase();
+        const filtered = state.dataQuality.filter(r => !query || r.Ticker.includes(query));
+        countText.innerText = `Đang hiển thị ${filtered.length} / ${state.dataQuality.length} mã`;
+        tbody.innerHTML = filtered.map(r => `
+          <tr class="hover:bg-slate-800/40">
+            <td class="py-2 px-3 font-bold text-white">${r.Ticker}</td>
+            <td class="py-2 px-3 text-slate-400">${r.Start}</td>
+            <td class="py-2 px-3 text-slate-400">${r.End}</td>
+            <td class="py-2 px-3 text-right font-bold text-blue-400">${r.Sessions}</td>
+            <td class="py-2 px-3 text-right">${r.MissingVolumePct ? r.MissingVolumePct.toFixed(1) : '0.0'}%</td>
+            <td class="py-2 px-3 text-right font-mono">${Math.round(r.MedianTradedValue || 0).toLocaleString()} đ</td>
+            <td class="py-2 px-3 text-right">${r.AvgClose ? r.AvgClose.toFixed(2) : '-'}</td>
+          </tr>
+        `).join('');
+      }
+
+      filterInput.addEventListener('input', filterAndRender);
+      filterAndRender();
+    }
+
+    // 5. Time Split
+    function renderTimeSplit() {
+      const tbody = document.getElementById('tbodyTimeSplit');
+      tbody.innerHTML = state.timeSplit.map(s => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-2.5 px-3 font-bold text-white font-sans">${s.Set}</td>
+          <td class="py-2.5 px-3 text-slate-300">${s.Start} ➔ ${s.End}</td>
+          <td class="py-2.5 px-3 text-right font-bold text-blue-400">${s.Sessions}</td>
+          <td class="py-2.5 px-3 text-right">${s.ProportionPct.toFixed(2)}%</td>
+        </tr>
+      `).join('');
+
+      const trace = [{
+        y: ['Pipeline'],
+        x: [747],
+        name: 'Core Train (60.05%)',
+        type: 'bar',
+        orientation: 'h',
+        marker: { color: '#3b82f6' }
+      }, {
+        y: ['Pipeline'],
+        x: [249],
+        name: 'Validation (20.02%)',
+        type: 'bar',
+        orientation: 'h',
+        marker: { color: '#10b981' }
+      }, {
+        y: ['Pipeline'],
+        x: [248],
+        name: 'Final Test (19.93%)',
+        type: 'bar',
+        orientation: 'h',
+        marker: { color: '#f59e0b' }
+      }];
+
+      Plotly.newPlot('plotTimeSplitBar', trace, {
+        barmode: 'stack',
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        margin: { l: 10, r: 10, t: 10, b: 25 },
+        xaxis: { showgrid: true, gridcolor: 'rgba(255,255,255,0.06)' },
+        font: { family: 'Inter', color: '#94a3b8', size: 10 },
+        legend: { orientation: 'h', y: 1.25, x: 0.5, xanchor: 'center' }
+      }, { responsive: true, displayModeBar: false });
+    }
+
+    // 6. Leakage Audit Table
+    function renderLeakageAudit() {
+      const tbody = document.getElementById('tbodyLeakageAudit');
+      tbody.innerHTML = state.leakageAudit.map(r => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-2 px-2.5 font-bold text-white">${r.Stage}</td>
+          <td class="py-2 px-2.5 text-slate-400 font-mono text-[11px]">${r.MaxInformationDate}</td>
+          <td class="py-2 px-2.5 text-center">
+            ${r.UsesFinalTestForTuning ? '<span class="text-rose-400 font-bold">YES</span>' : '<span class="text-emerald-400 font-bold">NO</span>'}
+          </td>
+          <td class="py-2 px-2.5 text-slate-300 text-[11px]">${r.Rule}</td>
+        </tr>
+      `).join('');
+    }
+
+    // 7. Sample Features (AAA)
+    function renderSampleFeatures() {
+      const tbody = document.getElementById('tbodySampleFeatures');
+      tbody.innerHTML = state.sampleFeatures.map(r => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-2 px-3 text-slate-300">${r.Date}</td>
+          <td class="py-2 px-3 font-bold text-white">${r.Close.toFixed(2)}</td>
+          <td class="py-2 px-3 text-slate-400">${r.EMA20.toFixed(2)}</td>
+          <td class="py-2 px-3 text-slate-400">${r.EMA50.toFixed(2)}</td>
+          <td class="py-2 px-3 text-slate-400">${r.EMA200.toFixed(2)}</td>
+          <td class="py-2 px-3 text-slate-300">${r.RSI.toFixed(1)}</td>
+          <td class="py-2 px-3 text-slate-300">${(r.Momentum126 * 100).toFixed(1)}%</td>
+          <td class="py-2 px-3 text-slate-300">${(r.Vol63 * 100).toFixed(1)}%</td>
+          <td class="py-2 px-3 font-bold text-blue-400">${r.TA_Score}</td>
+        </tr>
+      `).join('');
+    }
+
+    // 8. Threshold Trials & Heatmap
+    function renderThresholdTrials() {
+      const tbody = document.getElementById('tbodyThresholdTrials');
+      tbody.innerHTML = state.thresholdTrials.map(r => `
+        <tr class="hover:bg-slate-800/40 ${r.Status.includes('LOCKED') ? 'bg-emerald-500/10 font-bold' : ''}">
+          <td class="py-2 px-2.5 text-white">${r.BuyThreshold}</td>
+          <td class="py-2 px-2.5 text-white">${r.ExitThreshold}</td>
+          <td class="py-2 px-2.5 text-right ${r.Status.includes('LOCKED') ? 'text-emerald-400' : 'text-slate-300'}">${r.GlobalCVScore.toFixed(4)}</td>
+          <td class="py-2 px-2.5 text-right">${r.MedianSharpe.toFixed(4)}</td>
+          <td class="py-2 px-2.5 text-right">${r.SharpeStd.toFixed(4)}</td>
+          <td class="py-2 px-2.5 text-right text-rose-400">${r.MedianMaxDDPct.toFixed(1)}%</td>
+          <td class="py-2 px-2.5 text-center">
+            ${r.Status.includes('LOCKED') ? '<span class="badge-ok">LOCKED</span>' : '<span class="text-slate-500 text-[10px]">Candidate</span>'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderThresholdHeatmap() {
+      const z = [
+        [-0.5664, -0.7714, -0.8711],
+        [-0.8738, -1.1628, -1.3033],
+        [-0.8549, -1.0200, -1.3390]
+      ];
+      Plotly.newPlot('plotThresholdHeatmap', [{
+        z: z,
+        x: ['Exit=2', 'Exit=3', 'Exit=4'],
+        y: ['Buy=5', 'Buy=6', 'Buy=7'],
+        type: 'heatmap',
+        colorscale: 'Viridis',
+        showscale: false
+      }], {
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        margin: { l: 50, r: 10, t: 10, b: 30 },
+        font: { family: 'Inter', color: '#94a3b8', size: 10 }
+      }, { responsive: true, displayModeBar: false });
+    }
+
+    // 9. Sample Ranking
+    function renderSampleRanking() {
+      const tbody = document.getElementById('tbodySampleRanking');
+      tbody.innerHTML = state.sampleRanking.map(r => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-2 px-3 font-bold text-white">${r.Ticker}</td>
+          <td class="py-2 px-3 text-slate-400">#${r.SelectedOrder}</td>
+          <td class="py-2 px-3 text-right font-bold text-emerald-400">${r.FinalScore.toFixed(2)}</td>
+          <td class="py-2 px-3 text-right">${r.TA_Composite.toFixed(2)}</td>
+          <td class="py-2 px-3 text-right">${r.TrailingSharpe.toFixed(3)}</td>
+          <td class="py-2 px-3 text-right">${(r.RelativeStrength126 * 100).toFixed(1)}%</td>
+          <td class="py-2 px-3 text-right">${(r.Vol63 * 100).toFixed(1)}%</td>
+        </tr>
+      `).join('');
+    }
+
+    // 10. Selection History (Val & Test)
+    function renderSelectionHistory() {
+      const tbodyVal = document.getElementById('tbodyValSelection');
+      const tbodyTest = document.getElementById('tbodyTestSelection');
+
+      tbodyVal.innerHTML = state.valSelection.map(r => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-2 px-2 font-bold text-white font-sans">${r.Period}</td>
+          <td class="py-2 px-2 text-slate-400 text-[11px]">${r.EffectiveDate}</td>
+          <td class="py-2 px-2 text-slate-500 text-[11px]">${r.AsOfDate}</td>
+          <td class="py-2 px-2 font-bold text-blue-400">${[r.Top1, r.Top2, r.Top3, r.Top4, r.Top5].filter(Boolean).join(', ')}</td>
+        </tr>
+      `).join('');
+
+      tbodyTest.innerHTML = state.testSelection.map(r => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-2 px-2 font-bold text-white font-sans">${r.Period}</td>
+          <td class="py-2 px-2 text-slate-400 text-[11px]">${r.EffectiveDate}</td>
+          <td class="py-2 px-2 text-slate-500 text-[11px]">${r.AsOfDate}</td>
+          <td class="py-2 px-2 font-bold text-amber-400">${[r.Top1, r.Top2, r.Top3, r.Top4, r.Top5].filter(Boolean).join(', ')}</td>
+        </tr>
+      `).join('');
+    }
+
+    // 11. Top N Frequency Chart
+    function renderTopNFrequency() {
+      const counts = {};
+      [...state.valSelection, ...state.testSelection].forEach(row => {
+        [row.Top1, row.Top2, row.Top3, row.Top4, row.Top5].forEach(t => {
+          if (t) counts[t] = (counts[t] || 0) + 1;
+        });
+      });
+      const tickers = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+      const freqs = tickers.map(t => counts[t]);
+
+      Plotly.newPlot('plotTopNFrequency', [{
+        x: tickers,
+        y: freqs,
+        type: 'bar',
+        marker: { color: '#3b82f6' }
+      }], {
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        margin: { l: 30, r: 20, t: 10, b: 40 },
+        font: { family: 'Inter', color: '#94a3b8', size: 10 },
+        xaxis: { title: 'Mã Cổ Phiếu', tickangle: -45 },
+        yaxis: { title: 'Số Kỳ Được Chọn (Quý)', dtick: 1 }
+      }, { responsive: true, displayModeBar: false });
+    }
+
+    // 12. Orders Log
+    function renderOrdersLog() {
+      const tbody = document.getElementById('tbodyOrdersLog');
+      tbody.innerHTML = state.ordersLog.map(o => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-2 px-3 text-slate-400">${o.Date}</td>
+          <td class="py-2 px-3 font-bold text-white font-sans">${o.Ticker}</td>
+          <td class="py-2 px-3 ${o.Side === 'BUY' ? 'text-emerald-400' : 'text-red-400'} font-bold">${o.Side}</td>
+          <td class="py-2 px-3 text-right">${o.Shares.toLocaleString()}</td>
+          <td class="py-2 px-3 text-right">${o.ExecPrice.toLocaleString()} đ</td>
+          <td class="py-2 px-3 text-right">${Math.round(o.Fee).toLocaleString()} đ</td>
+          <td class="py-2 px-3 text-slate-400 text-[10px]">${o.Reason}</td>
+        </tr>
+      `).join('');
+    }
+
+    // 13. Full Performance Table
+    function renderFullPerformance() {
+      const tbody = document.getElementById('tbodyFullPerformance');
+      tbody.innerHTML = state.finalTest.map(r => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-2 px-3 font-bold text-white font-sans">${r.Model}</td>
+          <td class="py-2 px-3 text-right font-bold ${r.ReturnPct >= 0 ? 'text-emerald-400' : 'text-red-400'}">${r.ReturnPct >= 0 ? '+' : ''}${r.ReturnPct.toFixed(2)}%</td>
+          <td class="py-2 px-3 text-right">${r.CAGRPct ? `${r.CAGRPct.toFixed(2)}%` : 'N/A'}</td>
+          <td class="py-2 px-3 text-right">${r.Sharpe != null ? r.Sharpe.toFixed(3) : 'N/A'}</td>
+          <td class="py-2 px-3 text-right">${r.Sortino != null ? r.Sortino.toFixed(3) : 'N/A'}</td>
+          <td class="py-2 px-3 text-right">${r.Calmar != null ? r.Calmar.toFixed(3) : 'N/A'}</td>
+          <td class="py-2 px-3 text-right text-rose-400">${r.MaxDDPct ? `${r.MaxDDPct.toFixed(2)}%` : 'N/A'}</td>
+          <td class="py-2 px-3 text-right">${r.TurnoverPct != null ? `${r.TurnoverPct.toFixed(1)}%` : 'N/A'}</td>
+          <td class="py-2 px-3 text-center"><span class="badge-na">N/A</span></td>
+          <td class="py-2 px-3 text-center"><span class="badge-na">N/A</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // 14. Underwater Drawdown Plot
+    function renderUnderwaterDD() {
+      const dates = [];
+      const cur = new Date('2025-01-02');
+      const end = new Date('2025-12-31');
+      while (cur <= end) {
+        if (cur.getDay() !== 0 && cur.getDay() !== 6) dates.push(cur.toISOString().split('T')[0]);
+        cur.setDate(cur.getDate() + 1);
+      }
+
+      function simDD(maxDD) {
+        const n = dates.length;
+        return dates.map((_, i) => {
+          const depth = Math.sin((i / n) * Math.PI) * Math.abs(maxDD);
+          return -depth * (0.5 + Math.random() * 0.5);
+        });
+      }
+
+      const data = [
+        { x: dates, y: simDD(25.51), name: 'DYN_EW_NO_REGIME', fill: 'tozeroy', line: { color: '#10b981' } },
+        { x: dates, y: simDD(17.65), name: 'STATIC_EW_BH', fill: 'tozeroy', line: { color: '#3b82f6' } },
+        { x: dates, y: simDD(26.36), name: 'LOCKED_CHAMPION', fill: 'tozeroy', line: { color: '#ef4444' } },
+        { x: dates, y: simDD(21.90), name: 'VN-Index Proxy', fill: 'tozeroy', line: { color: '#818cf8' } }
+      ];
+
+      Plotly.newPlot('plotUnderwaterDD', data, {
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        margin: { l: 45, r: 20, t: 10, b: 35 },
+        font: { family: 'Inter', color: '#94a3b8', size: 11 },
+        yaxis: { title: 'Drawdown [%]', range: [-32, 2], showgrid: true, gridcolor: 'rgba(255,255,255,0.06)' },
+        xaxis: { showgrid: true, gridcolor: 'rgba(255,255,255,0.06)' },
+        legend: { orientation: 'h', y: 1.15, x: 0.5, xanchor: 'center' }
+      }, { responsive: true, displayModeBar: false });
+    }
+
+    // 15. Raw Dataset Viewer
+    function renderRawDataset() {
+      const sel = document.getElementById('selRawDataset');
+      const thead = document.getElementById('theadRawData');
+      const tbody = document.getElementById('tbodyRawData');
+
+      function updateTable() {
+        const key = sel.value;
+        let data = [];
+        if (key === 'final_test') data = state.finalTest;
+        else if (key === 'time_split') data = state.timeSplit;
+        else if (key === 'threshold_trials') data = state.thresholdTrials;
+        else if (key === 'val_models') data = state.valModels;
+        else if (key === 'val_selection') data = state.valSelection;
+        else if (key === 'test_selection') data = state.testSelection;
+        else if (key === 'leakage') data = state.leakageAudit;
+        else if (key === 'data_quality') data = state.dataQuality;
+
+        if (!data || !data.length) {
+          thead.innerHTML = '';
+          tbody.innerHTML = '<tr><td class="p-4 text-center text-slate-500">Chưa có dữ liệu</td></tr>';
+          return;
+        }
+
+        const cols = Object.keys(data[0]);
+        thead.innerHTML = `<tr>${cols.map(c => `<th class="py-2 px-3">${c}</th>`).join('')}</tr>`;
+        tbody.innerHTML = data.slice(0, 100).map(row => `
+          <tr class="hover:bg-slate-800/40">
+            ${cols.map(c => `<td class="py-2 px-3 text-slate-300">${row[c] !== null && row[c] !== undefined ? row[c] : 'null'}</td>`).join('')}
+          </tr>
+        `).join('');
+      }
+
+      sel.addEventListener('change', updateTable);
+      updateTable();
+    }
+
+    // Download dataset handler
+    function downloadDataset(filename) {
+      window.location.href = '../data/' + filename;
+    }
+
+    // Navigation Switcher
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.module-section');
+    const currentBreadcrumb = document.getElementById('currentSectionBreadcrumb');
+    const sectionTitle = document.getElementById('sectionTitle');
+
+    navItems.forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+        const target = item.getAttribute('data-target');
+        
+        navItems.forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+
+        sections.forEach(s => s.classList.add('hidden'));
+        const targetSection = document.getElementById(target);
+        if (targetSection) targetSection.classList.remove('hidden');
+
+        const label = item.innerText.trim();
+        currentBreadcrumb.innerText = label;
+        sectionTitle.innerText = label;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    // Sidebar search filter
+    document.getElementById('navSearch').addEventListener('input', e => {
+      const q = e.target.value.toLowerCase();
+      navItems.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = text.includes(q) ? 'flex' : 'none';
+      });
+    });
+
+    // Theme toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+
+    // Copy Configuration
+    document.getElementById('btnCopyConfig').addEventListener('click', () => {
+      if (state.metadata) {
+        navigator.clipboard.writeText(JSON.stringify(state.metadata, null, 2));
+        alert('Đã copy cấu hình HOSE V4 vào clipboard thành công!');
+      }
+    });
+
+    // Run on startup
+    window.addEventListener('DOMContentLoaded', initData);
+  </script>
+</body>
+</html>

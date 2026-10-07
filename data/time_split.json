@@ -1,0 +1,26 @@
+[
+  {
+    "Set": "Core Train",
+    "Start": "2021-01-04",
+    "End": "2024-01-02",
+    "Sessions": 747,
+    "ProportionPct": 60.05,
+    "Purpose": "Chọn ngưỡng TA chung qua Cross-Validation 3 folds"
+  },
+  {
+    "Set": "Validation",
+    "Start": "2024-01-03",
+    "End": "2024-12-31",
+    "Sessions": 249,
+    "ProportionPct": 20.02,
+    "Purpose": "Nested Walk-Forward tái chọn Top 5 theo quý & khóa Champion"
+  },
+  {
+    "Set": "Final Test",
+    "Start": "2025-01-02",
+    "End": "2025-12-31",
+    "Sessions": 248,
+    "ProportionPct": 19.93,
+    "Purpose": "Đánh giá Out-Of-Sample trung thực (No Retuning)"
+  }
+]

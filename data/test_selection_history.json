@@ -1,0 +1,6 @@
+[
+  { "Period": "Q1 / 2025", "EffectiveDate": "2025-01-02", "AsOfDate": "2024-12-31", "FilterMode": "TA", "FACoverage": 0.0, "Top1": "CTG", "Top2": "STB", "Top3": "MBB", "Top4": "FPT", "Top5": "SBT" },
+  { "Period": "Q2 / 2025", "EffectiveDate": "2025-04-01", "AsOfDate": "2025-03-31", "FilterMode": "TA", "FACoverage": 0.0, "Top1": "HAH", "Top2": "STB", "Top3": "CTG", "Top4": "TCB", "Top5": "GEX" },
+  { "Period": "Q3 / 2025", "EffectiveDate": "2025-07-01", "AsOfDate": "2025-06-30", "FilterMode": "TA", "FACoverage": 0.0, "Top1": "TCB", "Top2": "STB", "Top3": "VND", "Top4": "VRE", "Top5": "CTG" },
+  { "Period": "Q4 / 2025", "EffectiveDate": "2025-10-01", "AsOfDate": "2025-09-30", "FilterMode": "TA", "FACoverage": 0.0, "Top1": "VHM", "Top2": "SBT", "Top3": "HHS", "Top4": "VRE", "Top5": "STB" }
+]

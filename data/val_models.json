@@ -1,0 +1,8 @@
+[
+  { "Model": "DYN_EW_REGIME", "ReturnPct": 7.847104, "Sharpe": 0.523498, "Sortino": 0.408030, "MaxDDPct": -11.375024, "TurnoverPct": 854.077662, "ValidationScore": -0.006318, "Status": "CHAMPION KHÓA" },
+  { "Model": "DYN_MINVAR_REGIME", "ReturnPct": 6.373367, "Sharpe": 0.467531, "Sortino": 0.447301, "MaxDDPct": -12.405740, "TurnoverPct": 901.190576, "ValidationScore": -0.070977, "Status": "Rank 2" },
+  { "Model": "DYN_HRP_REGIME", "ReturnPct": 4.220372, "Sharpe": 0.336816, "Sortino": 0.288344, "MaxDDPct": -13.528528, "TurnoverPct": 902.084207, "ValidationScore": -0.184416, "Status": "Rank 3" },
+  { "Model": "DYN_BLEND50_REGIME", "ReturnPct": -2.076269, "Sharpe": -0.011389, "Sortino": -0.008214, "MaxDDPct": -15.716631, "TurnoverPct": 980.845405, "ValidationScore": -0.509285, "Status": "Rank 4" },
+  { "Model": "DYN_MPT_LW_REGIME", "ReturnPct": -10.622397, "Sharpe": -0.409072, "Sortino": -0.288680, "MaxDDPct": -22.425951, "TurnoverPct": 1113.059762, "ValidationScore": -0.925810, "Status": "Rank 5" },
+  { "Model": "BENCHMARK", "ReturnPct": -6.273052, "Sharpe": -0.282540, "Sortino": -0.335481, "MaxDDPct": -18.738658, "TurnoverPct": null, "ValidationScore": null, "Status": "Market Proxy" }
+]

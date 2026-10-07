@@ -1,0 +1,6 @@
+[
+  { "Period": "Q1 / 2024", "EffectiveDate": "2024-01-03", "AsOfDate": "2024-01-02", "FilterMode": "TA", "FACoverage": 0.0, "Top1": "GMD", "Top2": "FPT", "Top3": "HSG", "Top4": "DGC", "Top5": "TCH" },
+  { "Period": "Q2 / 2024", "EffectiveDate": "2024-04-01", "AsOfDate": "2024-03-29", "FilterMode": "TA", "FACoverage": 0.0, "Top1": "HDB", "Top2": "ACB", "Top3": "TCB", "Top4": "MBB", "Top5": "LPB" },
+  { "Period": "Q3 / 2024", "EffectiveDate": "2024-07-01", "AsOfDate": "2024-06-28", "FilterMode": "TA", "FACoverage": 0.0, "Top1": "MWG", "Top2": "LPB", "Top3": "FPT", "Top4": "POW", "Top5": "DGC" },
+  { "Period": "Q4 / 2024", "EffectiveDate": "2024-10-01", "AsOfDate": "2024-09-30", "FilterMode": "TA", "FACoverage": 0.0, "Top1": "LPB", "Top2": "FPT", "Top3": "HDB", "Top4": "MWG", "Top5": "CTG" }
+]

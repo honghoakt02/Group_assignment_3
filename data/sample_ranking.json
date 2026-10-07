@@ -1,0 +1,7 @@
+[
+  { "Ticker": "GMD", "SelectedOrder": 1, "FinalScore": 89.204545, "TA_Composite": 89.204545, "FAScore": null, "TrailingSharpe": 1.897217, "RelativeStrength126": 0.305217, "Vol63": 0.318372, "Sector": "UNKNOWN" },
+  { "Ticker": "FPT", "SelectedOrder": 2, "FinalScore": 88.750000, "TA_Composite": 88.750000, "FAScore": null, "TrailingSharpe": 1.593703, "RelativeStrength126": 0.254588, "Vol63": 0.260865, "Sector": "UNKNOWN" },
+  { "Ticker": "HSG", "SelectedOrder": 3, "FinalScore": 85.568182, "TA_Composite": 85.568182, "FAScore": null, "TrailingSharpe": 1.562536, "RelativeStrength126": 0.298850, "Vol63": 0.447597, "Sector": "UNKNOWN" },
+  { "Ticker": "DGC", "SelectedOrder": 4, "FinalScore": 84.545455, "TA_Composite": 84.545455, "FAScore": null, "TrailingSharpe": 1.790489, "RelativeStrength126": 0.380911, "Vol63": 0.354893, "Sector": "UNKNOWN" },
+  { "Ticker": "TCH", "SelectedOrder": 5, "FinalScore": 82.386364, "TA_Composite": 82.386364, "FAScore": null, "TrailingSharpe": 1.447005, "RelativeStrength126": 0.405799, "Vol63": 0.457932, "Sector": "UNKNOWN" }
+]
